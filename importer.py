@@ -53,7 +53,7 @@ class MissingFieldError(Exception):
         return "Error: Missing field '{}'".format(name)
 
 def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
-    from CTFd.models import db, Challenges, Keys, Tags, Files
+    from CTFd.models import db, Challenges, Flags, Tags, Files
     chals = []
     with open(in_file, 'r') as in_stream:
         chals = yaml.safe_load_all(in_stream)
@@ -84,10 +84,10 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
 
             # We ignore traling and leading whitespace when importing challenges
             chal_dbobj = Challenges(
-                chal['name'].strip(),
-                chal['description'].strip(),
-                chal['value'],
-                chal['category'].strip()
+                name=chal['name'].strip(),
+                description=chal['description'].strip(),
+                value=chal['value'],
+                category=chal['category'].strip()
             )
 
             if 'hidden' in chal and chal['hidden']:
@@ -98,7 +98,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 description=chal_dbobj.description,
                 value=chal_dbobj.value,
                 category=chal_dbobj.category,
-                hidden=chal_dbobj.hidden
+                #hidden=chal_dbobj.hidden
             ).all()
 
             for match in matching_chals:
@@ -130,12 +130,12 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                     if mismatch:
                         continue
 
-                flags_db = Keys.query.filter_by(chal=match.id).all()
+                flags_db = Flags.query.filter_by(challenge_id=match.id).all()
                 for flag in chal['flags']:
                     for flag_db in flags_db:
-                        if flag['flag'] != flag_db.flag:
+                        if flag['flag'] != flag_db.content:
                             continue
-                        if flag['type'] != flag_db.key_type:
+                        if flag['type'] != flag_db.type:
                             continue
 
                 skip = True
@@ -154,7 +154,11 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                     db.session.add(tag_dbobj)
 
             for flag in chal['flags']:
-                flag_db = Keys(chal_dbobj.id, flag['flag'], flag['type'])
+                flag_db = Flags(
+                    challenge_id=chal_dbobj.id,
+                    content=flag['flag'],
+                    type=flag['type']
+                )
                 db.session.add(flag_db)
 
 

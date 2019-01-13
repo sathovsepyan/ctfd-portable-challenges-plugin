@@ -4,7 +4,7 @@ from exporter import export_challenges
 from importer import import_challenges
 from tempfile import TemporaryFile, mkdtemp
 from gzip import GzipFile
-from CTFd.utils import admins_only
+from CTFd.utils.decorators import admins_only
 import tarfile
 import gzip
 import os
