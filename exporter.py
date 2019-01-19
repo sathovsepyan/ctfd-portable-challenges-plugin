@@ -62,7 +62,7 @@ def tar_files(file_map, tarfile):
 
 
 def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
-    from CTFd.models import Challenges, Flags, Tags, Files, DatabaseError
+    from CTFd.models import Challenges, Flags, Tags, Files
 
     chals = Challenges.query.order_by(Challenges.value).all()
     chals_list = []
