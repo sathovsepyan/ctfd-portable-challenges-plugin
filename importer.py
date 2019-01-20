@@ -165,10 +165,11 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
 
             if 'files' in chal:
                 from io import FileIO
+                filepath = os.path.join(os.path.dirname(in_file), filename)
                 for filename in chal['files']:
                     # upload_file takes a werkzeug.FileStorage object, but we can get close enough
                     # with a file object with a filename property added
-                    with FileIO(filename, mode='rb') as f:
+                    with FileIO(filepath, mode='rb') as f:
                         f.filename = f.name
                         uploads.upload_file(file=f, challenge=chal_dbobj.id, type='challenge')
 
