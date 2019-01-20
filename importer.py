@@ -170,7 +170,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                     # with a file object with a filename property added
                     filepath = os.path.join(os.path.dirname(in_file), filename)
                     with FileIO(filepath, mode='rb') as f:
-                        f.filename = f.name
+                        f.filename = os.path.basename(f.name)
                         uploads.upload_file(file=f, challenge=chal_dbobj.id, type='challenge')
 
     db.session.commit()
