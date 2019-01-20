@@ -53,7 +53,8 @@ class MissingFieldError(Exception):
         return "Error: Missing field '{}'".format(name)
 
 def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
-    from CTFd.models import db, Challenges, Flags, Tags, Files
+    from CTFd.models import db, Challenges, Flags, Tags, ChallengeFiles
+    from CTFd.utils import uploads
     chals = []
     with open(in_file, 'r') as in_stream:
         chals = yaml.safe_load_all(in_stream)
@@ -107,7 +108,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                     if all([tag not in tags_db for tag in chal['tags']]):
                         continue
                 if 'files' in chal:
-                    files_db = [f.location for f in Files.query.add_columns('location').filter_by(chal=match.id).all()]
+                    files_db = [f.location for f in ChallengeFiles.query.add_columns('location').filter_by(challenge_id=match.id).all()]
                     if len(files_db) != len(chal['files']):
                         continue
 
@@ -163,26 +164,13 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
 
 
             if 'files' in chal:
-                for file in chal['files']:
-                    filename = os.path.basename(file)
-                    dst_filename = secure_filename(filename)
-
-                    dst_dir = None
-                    while not dst_dir or os.path.exists(dst_dir):
-                        md5hash = hashlib.md5(os.urandom(64)).hexdigest()
-                        dst_dir = os.path.join(dst_attachments, md5hash)
-
-                    os.makedirs(dst_dir)
-                    dstpath = os.path.join(dst_dir, dst_filename)
-                    srcpath = os.path.join(os.path.dirname(in_file), file)
-
-                    if move:
-                        shutil.move(srcpath, dstpath)
-                    else:
-                        shutil.copy(srcpath, dstpath)
-                    file_dbobj = Files(chal_dbobj.id, os.path.relpath(dstpath, start=dst_attachments))
-
-                    db.session.add(file_dbobj)
+                from io import FileIO
+                for filename in chal['files']:
+                    # upload_file takes a werkzeug.FileStorage object, but we can get close enough
+                    # with a file object with a filename property added
+                    with FileIO(filename, mode='rb') as f:
+                        f.filename = f.name
+                        uploads.upload_file(file=f, challenge=chal_dbobj.id, type='challenge')
 
     db.session.commit()
     db.session.close()
@@ -204,6 +192,9 @@ if __name__ == "__main__":
             url.drivername = 'postgresql'
 
         db.init_app(app)
+
+        from CTFd.cache import cache
+        cache.init_app(app)
 
         try:
             if not (url.drivername.startswith('sqlite') or database_exists(url)):
