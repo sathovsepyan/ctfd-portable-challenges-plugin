@@ -83,71 +83,35 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 if 'type' not in flag:
                     flag['type'] = "static"
 
-            # We ignore traling and leading whitespace when importing challenges
-            chal_dbobj = Challenges(
-                name=chal['name'].strip(),
-                description=chal['description'].strip(),
-                value=chal['value'],
-                category=chal['category'].strip()
-            )
+            matching_chal = Challenges.query.filter_by(name=chal['name'].strip()).first()
+            if matching_chal:
+                print "Updating {}: Duplicate challenge found in DB (id: {})".format(chal['name'].encode('utf8'), matching_chal.id)
+                Tags.query.filter_by(challenge_id=matching_chal.id).delete()
+                ChallengeFiles.query.filter_by(challenge_id=matching_chal.id).delete()
+                Flags.query.filter_by(challenge_id=matching_chal.id).delete()
+                #Hints.query.filter_by(challenge_id=matching_chal.id).delete()
 
-            if 'hidden' in chal and chal['hidden']:
-                chal_dbobj.hidden = True
+                matching_chal.name = chal['name'].strip()
+                matching_chal.description = chal['description'].strip()
+                matching_chal.value = chal['value']
+                matching_chal.category = chal['category'].strip()
 
-            matching_chals = Challenges.query.filter_by(
-                name=chal_dbobj.name,
-                description=chal_dbobj.description,
-                value=chal_dbobj.value,
-                category=chal_dbobj.category,
-                #hidden=chal_dbobj.hidden
-            ).all()
+                db.session.commit()
+                chal_dbobj = matching_chal
 
-            for match in matching_chals:
-                if 'tags' in chal:
-                    tags_db = [tag.tag for tag in Tags.query.add_columns('tag').filter_by(chal=match.id).all()]
-                    if all([tag not in tags_db for tag in chal['tags']]):
-                        continue
-                if 'files' in chal:
-                    files_db = [f.location for f in ChallengeFiles.query.add_columns('location').filter_by(challenge_id=match.id).all()]
-                    if len(files_db) != len(chal['files']):
-                        continue
+            else:
+                print "Adding {}".format(chal['name'].encode('utf8'))
 
-                    hashes = []
-                    for file_db in files_db:
-                        with open(os.path.join(dst_attachments, file_db), 'r') as f:
-                            hash = hashlib.md5(f.read()).digest()
-                            hashes.append(hash)
+                # We ignore traling and leading whitespace when importing challenges
+                chal_dbobj = Challenges(
+                    name=chal['name'].strip(),
+                    description=chal['description'].strip(),
+                    value=chal['value'],
+                    category=chal['category'].strip()
+                )
 
-                    mismatch = False
-                    for file in chal['files']:
-                        filepath = os.path.join(os.path.dirname(in_file), file)
-                        with open(filepath, 'r') as f:
-                            hash = hashlib.md5(f.read()).digest()
-                            if hash in hashes:
-                                hashes.remove(hash)
-                            else:
-                                mismatch = True
-                                break
-                    if mismatch:
-                        continue
-
-                flags_db = Flags.query.filter_by(challenge_id=match.id).all()
-                for flag in chal['flags']:
-                    for flag_db in flags_db:
-                        if flag['flag'] != flag_db.content:
-                            continue
-                        if flag['type'] != flag_db.type:
-                            continue
-
-                skip = True
-                break
-            if skip:
-                print "Skipping {}: Duplicate challenge found in DB".format(chal['name'].encode('utf8'))
-                continue
-
-            print "Adding {}".format(chal['name'].encode('utf8'))
-            db.session.add(chal_dbobj)
-            db.session.commit()
+                db.session.add(chal_dbobj)
+                db.session.commit()
 
             if 'tags' in chal:
                 for tag in chal['tags']:
