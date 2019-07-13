@@ -102,13 +102,28 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
             else:
                 print "Adding {}".format(chal['name'].encode('utf8'))
 
-                # We ignore traling and leading whitespace when importing challenges
-                chal_dbobj = Challenges(
-                    name=chal['name'].strip(),
-                    description=chal['description'].strip(),
-                    value=chal['value'],
-                    category=chal['category'].strip()
-                )
+                chal_type = chal.get('type', 'standard')
+                if chal_type == 'standard':
+                    # We ignore traling and leading whitespace when importing challenges
+                    chal_dbobj = Challenges(
+                        name=chal['name'].strip(),
+                        description=chal['description'].strip(),
+                        value=chal['value'],
+                        category=chal['category'].strip(),
+                    )
+                elif chal_type == 'dynamic':
+                    from CTFd.plugins.dynamic_challenges import DynamicChallenge
+                    # We ignore traling and leading whitespace when importing challenges
+                    chal_dbobj = Challenges(
+                        name=chal['name'].strip(),
+                        description=chal['description'].strip(),
+                        category=chal['category'].strip(),
+                        value=int(chal['value']),
+                        minimum=int(chal['minimum']),
+                        decay=int(chal['decay']),
+                    )
+                else:
+                    raise ValueError('Unknown type of challenge')
 
                 db.session.add(chal_dbobj)
                 db.session.commit()
