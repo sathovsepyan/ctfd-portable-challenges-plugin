@@ -93,8 +93,9 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
 
                 matching_chal.name = chal['name'].strip()
                 matching_chal.description = chal['description'].strip()
-                matching_chal.value = chal['value']
                 matching_chal.category = chal['category'].strip()
+                if chal.get('type', 'standard') == 'standard':
+                    matching_chal.value = chal['value']
 
                 db.session.commit()
                 chal_dbobj = matching_chal
