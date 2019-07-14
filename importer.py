@@ -114,7 +114,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 elif chal_type == 'dynamic':
                     from CTFd.plugins.dynamic_challenges import DynamicChallenge
                     # We ignore traling and leading whitespace when importing challenges
-                    chal_dbobj = Challenges(
+                    chal_dbobj = DynamicChallenge(
                         name=chal['name'].strip(),
                         description=chal['description'].strip(),
                         category=chal['category'].strip(),
