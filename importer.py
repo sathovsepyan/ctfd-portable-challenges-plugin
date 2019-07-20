@@ -129,10 +129,9 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 db.session.add(chal_dbobj)
                 db.session.commit()
 
-            if 'tags' in chal:
-                for tag in chal['tags']:
-                    tag_dbobj = Tags(chal_dbobj.id, tag)
-                    db.session.add(tag_dbobj)
+            for tag in chal.get('tags', []):
+                tag_dbobj = Tags(chal_dbobj.id, tag)
+                db.session.add(tag_dbobj)
 
             for flag in chal['flags']:
                 flag_db = Flags(
@@ -142,6 +141,10 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 )
                 db.session.add(flag_db)
 
+            prerequisites = set()
+            for prerequisite in chal.get('prerequisites', []):
+                prerequisites.update([c.id for c in Challenges.query.filter_by(name=prerequisite).all()])
+            chal_dbobj.requirements = {'prerequisites': list(prerequisites)}
 
             if 'files' in chal:
                 from io import FileIO
