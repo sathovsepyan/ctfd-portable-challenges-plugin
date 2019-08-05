@@ -130,7 +130,10 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 db.session.commit()
 
             for tag in chal.get('tags', []):
-                tag_dbobj = Tags(chal_dbobj.id, tag)
+                tag_dbobj = Tags(
+                    challenge_id=chal_dbobj.id,
+                    value=tag
+                )
                 db.session.add(tag_dbobj)
 
             for flag in chal['flags']:
