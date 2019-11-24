@@ -48,9 +48,9 @@ def process_args(args):
 
 class MissingFieldError(Exception):
     def __init__(self, name):
-        self.name = value
+        self.name = name
     def __str__(self):
-        return "Error: Missing field '{}'".format(name)
+        return "Error: Missing field '{}'".format(self.name)
 
 def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
     from CTFd.models import db, Challenges, Flags, Tags, ChallengeFiles
@@ -66,7 +66,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                     if exit_on_error:
                         raise MissingFieldError(req_field)
                     else:
-                        print "Skipping challenge: Missing field '{}'".format(req_field)
+                        print("Skipping challenge: Missing field '{}'".format(req_field))
                         skip = True
                         break
             if skip:
@@ -77,7 +77,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                     if exit_on_error:
                         raise MissingFieldError('flag')
                     else:
-                        print "Skipping flag: Missing field 'flag'"
+                        print("Skipping flag: Missing field 'flag'")
                         continue
                 flag['flag'] = flag['flag'].strip()
                 if 'type' not in flag:
@@ -85,7 +85,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
 
             matching_chal = Challenges.query.filter_by(name=chal['name'].strip()).first()
             if matching_chal:
-                print "Updating {}: Duplicate challenge found in DB (id: {})".format(chal['name'].encode('utf8'), matching_chal.id)
+                print("Updating {}: Duplicate challenge found in DB (id: {})".format(chal['name'].encode('utf8'), matching_chal.id))
                 Tags.query.filter_by(challenge_id=matching_chal.id).delete()
                 ChallengeFiles.query.filter_by(challenge_id=matching_chal.id).delete()
                 Flags.query.filter_by(challenge_id=matching_chal.id).delete()
@@ -101,7 +101,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 chal_dbobj = matching_chal
 
             else:
-                print "Adding {}".format(chal['name'].encode('utf8'))
+                print("Adding {}".format(chal['name'].encode('utf8')))
 
                 chal_type = chal.get('type', 'standard')
                 if chal_type == 'standard':
