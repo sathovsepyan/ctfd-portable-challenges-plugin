@@ -25,7 +25,7 @@ def load(app):
             print(upload_folder)
 
             yamlfile.write(
-                export_challenges("challenges.yaml", "export.d", upload_folder, tarball)
+                export_challenges("challenges.yaml", "files", upload_folder, tarball)
             )
 
             tarinfo = tarfile.TarInfo("challenges.yaml")

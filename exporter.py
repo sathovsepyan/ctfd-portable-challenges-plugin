@@ -109,7 +109,7 @@ def tar_files(file_map, tarfile):
 
 
 def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
-    from CTFd.models import Challenges, Flags, Tags, Files
+    from CTFd.models import Challenges, Flags, Tags, ChallengeFiles
 
     chals = Challenges.query.order_by(Challenges.value).all()
     chals_list = []
@@ -142,20 +142,23 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
         if tags:
             properties["tags"] = tags
 
-        # These file locations will be partial paths in relation to the upload folder
-        src_paths_rel = [
-            file.location
-            for file in Files.query.add_columns("location")
-            .filter_by(challenge_id=chal.id)
-            .all()
-        ]
+        prerequisites = []
+        if chal.requirements:
+            for req in chal.requirements['prerequisites']:
+                reqChall = Challenges.query.filter_by(id=req).first()
+                if reqChall != None:
+                    prerequisites.append(reqChall.name)
+        if prerequisites:
+            properties["prerequisites"] = prerequisites
+        
+        src_paths_rel = ChallengeFiles.query.filter_by(challenge_id=chal.id)
 
         file_map = {}
         file_list = []
         for src_path_rel in src_paths_rel:
-            dirname, filename = os.path.split(src_path_rel)
+            dirname, filename = os.path.split(src_path_rel.location)
             dst_dir = os.path.join(dst_attachments, dirname)
-            src_path = os.path.join(src_attachments, src_path_rel)
+            src_path = os.path.join(src_attachments, src_path_rel.location)
             file_map[src_path] = os.path.join(dst_dir, filename)
 
             # Create path relative to the output file

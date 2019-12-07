@@ -122,8 +122,8 @@ description: Aenean nulla dolor, imperdiet id massa eu, iaculis mattis urna. Nul
   lorem non tristique placerat. Lorem ipsum dolor sit amet, consectetur adipiscing
   elit.
 files:
-- export.d/8f227f1c7f305b3fcd39cc06d54a7e36/bfn1o8t5s6dy.gif
-- export.d/4ab77d38dd646bb81e8d6d2533eec71c/bPXFXW7.mp4
+- files/8f227f1c7f305b3fcd39cc06d54a7e36/bfn1o8t5s6dy.gif
+- files/4ab77d38dd646bb81e8d6d2533eec71c/bPXFXW7.mp4
 flags:
 - flag: pharetra
 name: Duis
@@ -133,7 +133,7 @@ category: netus
 description: Duis nibh elit, ultricies non erat non, vulputate vestibulum risus. Nullam
   posuere ac nisi vitae lobortis. Vivamus convallis dictum nunc sed cursus.
 files:
-- export.d/1e9f731e310179959337a26307356513/LYVIZ4x.mp4
+- files/1e9f731e310179959337a26307356513/LYVIZ4x.mp4
 flags:
 - flag: ante
 hidden: true
@@ -148,7 +148,7 @@ description: Praesent ullamcorper orci condimentum sapien tincidunt lacinia. Pel
   rhoncus turpis quam at odio. Nam pharetra faucibus augue a rhoncus. In hac habitasse
   platea dictumst.
 files:
-- export.d/479922c8a73612596ba64c681aa8a022/21KNq7T.mp4
+- files/479922c8a73612596ba64c681aa8a022/21KNq7T.mp4
 flags:
 - flag: orci
 name: suscipit nisi eget
@@ -158,8 +158,8 @@ category: tristique
 description: Praesent ullamcorper orci condimentum sapien tincidunt lacinia. Pellentesque
   habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
 files:
-- export.d/8d25765f0902bfc03634e2f578e75e16/ES5hMrK.mp4
-- export.d/6a1586bced5fbed05ec64392dca6b0f1/fAiFGB3.mp4
+- files/8d25765f0902bfc03634e2f578e75e16/ES5hMrK.mp4
+- files/6a1586bced5fbed05ec64392dca6b0f1/fAiFGB3.mp4
 flags:
 - flag: '[eaEA]gesta(s)+'
 - flag: habitant
@@ -171,7 +171,7 @@ value: 40
 category: Test
 description: Tset
 files:
-- export.d/ad752f7af75045c1e6735148af09075f/bridge-up.sh
+- files/ad752f7af75045c1e6735148af09075f/bridge-up.sh
 flags:
 - flag: key
 name: Test
