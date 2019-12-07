@@ -121,21 +121,24 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
             "description": chal.description,
             "category": chal.category,
         }
-        flags_obj = Flags.query.filter_by(chal=chal.id)
+
         flags = []
-        for flag_obj in flags_obj:
+        for flag_obj in Flags.query.filter_by(challenge_id=chal.id):
             flag = {}
-            flag["flag"] = flag_obj.flag
-            flag["type"] = flag_obj.type
+            flag["flag"] = flag_obj.content
+            if flag_obj.type != 'static':
+                flag["type"] = flag_obj.type
             flags.append(flag)
         properties["flags"] = flags
 
-        if chal.hidden:
-            properties["hidden"] = bool(chal.hidden)
-        tags = [
-            tag.tag
-            for tag in Tags.query.add_columns("tag").filter_by(chal=chal.id).all()
-        ]
+        if chal.state == 'hidden':
+            properties["hidden"] = True
+
+        tags = []
+        for tag_obj in Tags.query.filter_by(challenge_id=chal.id):
+            tag = {}
+            tag["value"] = tag_obj.value
+            tags.append(tag)
         if tags:
             properties["tags"] = tags
 
@@ -143,7 +146,7 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
         src_paths_rel = [
             file.location
             for file in Files.query.add_columns("location")
-            .filter_by(chal=chal.id)
+            .filter_by(challenge_id=chal.id)
             .all()
         ]
 
@@ -169,8 +172,9 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
         print("Exporting", properties["name"])
         chals_list.append(properties)
 
-    return yaml.safe_dump_all(
-        chals_list, default_flow_style=False, allow_unicode=True, explicit_start=True
+    data = { "challs": chals_list }
+    return yaml.safe_dump(
+        data, default_flow_style=False, allow_unicode=True, explicit_start=True
     )
 
 

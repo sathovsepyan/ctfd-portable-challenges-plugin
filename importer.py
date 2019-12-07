@@ -103,11 +103,16 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
     from CTFd.models import db, Challenges, Flags, Tags, ChallengeFiles
     from CTFd.utils import uploads
 
-    chals = []
     with open(in_file, "r") as in_stream:
-        chals = yaml.safe_load_all(in_stream)
+        data = list(yaml.safe_load_all(in_stream))
+        if len(data) == 0 or "challs" not in data[0]:
+            if exit_on_error:
+                raise MissingFieldError("challs")
+            else:
+                print("Invalid YAML format. Missing field 'challs'")
+                return
 
-        for chal in chals:
+        for chal in data[0]["challs"]:
             skip = False
             for req_field in REQ_FIELDS:
                 if req_field not in chal:
@@ -189,7 +194,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 db.session.commit()
 
             for tag in chal.get("tags", []):
-                tag_dbobj = Tags(challenge_id=chal_dbobj.id, value=tag)
+                tag_dbobj = Tags(challenge_id=chal_dbobj.id, value=tag["value"])
                 db.session.add(tag_dbobj)
 
             for flag in chal["flags"]:
