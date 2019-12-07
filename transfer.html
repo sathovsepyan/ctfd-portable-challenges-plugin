@@ -30,15 +30,16 @@
                                 to make the initial setup less tedious.</p>
                             <p>To download an export click the button below.</p>
                         </div>
+
                         <div class="form-group">
-                            <a href="{{ url_for('admin.export_ctf') }}" id="export-chall-button"
+                            <a href="{{ request.script_root }}/admin/yaml" id="export-chall-button"
                                 class="btn btn-warning">Export</a>
                         </div>
                     </div>
                     <div role="tabpanel" class="tab-pane active" id="import-chall">
                         <div class="form-group">
                             <p>You can import challenges from a YAML file! </p>
-                            <p>Please upload the YAML specification of challenges (called <i>export.yaml</i>)
+                            <p>Please upload the YAML specification of challenges (called <i>challenges.yaml</i>)
                                 together with all the required files compressed in a <i>gzip</i> or <i>bz2</i> archive.
                             </p>
                         </div>

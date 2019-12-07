@@ -21,7 +21,7 @@ There are two endpoints which are associated with this plugin.
 
 * '/admin/yaml': This is where the file transfer takes place. It supports two methods.
   * `GET`: Will send, as an attachment, a compressed tarball archive containing all of the currently configured challenges and their files
-  * `POST`: Requires a tarball archive, optional compressed with gzip or bz2, to be attached in the 'file' field. This will unpack the archive and add any challeneges which are not already in the database. The archive should contain the challenge spec as 'export.yaml' at the root directory of the archive, and no paths should reach into directories above the archive (e.g. ../../etc/passwd would trigger an error) A challenge is not added if it is an exact replica of an existing challenge including name, category, files, keys, etc...
+  * `POST`: Requires a tarball archive, optional compressed with gzip or bz2, to be attached in the 'file' field. This will unpack the archive and add any challeneges which are not already in the database. The archive should contain the challenge spec as 'challenges.yaml' at the root directory of the archive, and no paths should reach into directories above the archive (e.g. ../../etc/passwd would trigger an error) A challenge is not added if it is an exact replica of an existing challenge including name, category, files, keys, etc...
 
 * '/admin/transfer': This is the front-end for the import/export system. It provides a simple inferface by which the endpoint described above can be accessed
 
@@ -40,7 +40,7 @@ optional arguments:
   --app-root APP_ROOT  app_root directory for the CTFd Flask app (default: 2 directories up from this script)
   -d DB_URI            URI of the database where the challenges should be stored
   -F DST_ATTACHMENTS   directory where challenge attachment files should be stored
-  -i IN_FILE           name of the input YAML file (default: export.yaml)
+  -i IN_FILE           name of the input YAML file (default: challenges.yaml)
   --skip-on-error      If set, the importer will skip the importing challenges which have errors rather than halt.
   --move               if set the import proccess will move files rather than copy them
 
@@ -56,7 +56,7 @@ optional arguments:
   --app-root APP_ROOT  app_root directory for the CTFd Flask app (default: 2 directories up from this script)
   -d DB_URI            URI of the database where the challenges are stored
   -F SRC_ATTACHMENTS   directory where challenge attachment files are stored
-  -o OUT_FILE          name of the output YAML file (default: export.yaml)
+  -o OUT_FILE          name of the output YAML file (default: challenges.yaml)
   -O DST_ATTACHMENTS   directory for output challenge attachments (default: [OUT_FILENAME].d)
   --tar                if present, output to tar file
   --gz                 if present, compress the tar file (only used if '--tar'is on)
