@@ -210,6 +210,9 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 )
             chal_dbobj.requirements = {"prerequisites": list(prerequisites)}
 
+            if "hidden" in chal and chal["hidden"] == True:
+                chal_dbobj.state = "hidden"
+
             if "files" in chal:
                 from io import FileIO
 
