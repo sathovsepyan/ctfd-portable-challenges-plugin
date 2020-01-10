@@ -126,19 +126,19 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
         for flag_obj in Flags.query.filter_by(challenge_id=chal.id):
             flag = {}
             flag["flag"] = flag_obj.content
-            if flag_obj.type != 'static':
+            if flag_obj.type != "static":
                 flag["type"] = flag_obj.type
             flags.append(flag)
         properties["flags"] = flags
 
-        if chal.state == 'hidden':
+        if chal.state == "hidden":
             properties["hidden"] = True
+        if chal.max_attempts != 0: 
+            properties["max_attempts"] = chal.max_attempts
 
         tags = []
         for tag_obj in Tags.query.filter_by(challenge_id=chal.id):
-            tag = {}
-            tag["value"] = tag_obj.value
-            tags.append(tag)
+            tags.append(tag_obj.value)
         if tags:
             properties["tags"] = tags
 
@@ -150,7 +150,18 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
                     prerequisites.append(reqChall.name)
         if prerequisites:
             properties["prerequisites"] = prerequisites
-        
+
+        hints = []
+        if chal.hints:
+            for hint_obj in chal.hints:
+                hint = { 
+                    "content": hint_obj.content,
+                    "cost": hint_obj.cost
+                }
+                hints.append(hint)
+        if hints:
+            properties["hints"] = hints
+
         src_paths_rel = ChallengeFiles.query.filter_by(challenge_id=chal.id)
 
         file_map = {}

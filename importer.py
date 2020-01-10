@@ -100,7 +100,7 @@ class MissingFieldError(Exception):
 
 
 def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
-    from CTFd.models import db, Challenges, Flags, Tags, ChallengeFiles
+    from CTFd.models import db, Challenges, Flags, Tags, ChallengeFiles, Hints
     from CTFd.utils import uploads
 
     with open(in_file, "r") as in_stream:
@@ -150,13 +150,18 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 Tags.query.filter_by(challenge_id=matching_chal.id).delete()
                 ChallengeFiles.query.filter_by(challenge_id=matching_chal.id).delete()
                 Flags.query.filter_by(challenge_id=matching_chal.id).delete()
-                # Hints.query.filter_by(challenge_id=matching_chal.id).delete()
+                Hints.query.filter_by(challenge_id=matching_chal.id).delete()
 
                 matching_chal.name = chal["name"].strip()
                 matching_chal.description = chal["description"].strip()
-                matching_chal.category = chal["category"].strip()
+                matching_chal.category = chal["category"].strip
+                
                 if chal.get("type", "standard") == "standard":
                     matching_chal.value = chal["value"]
+                
+                if chal.get("type", "standard") == "dynamic":
+                    matching_chal.minimum = chal["minimum"]
+                    matching_chal.decay = chal["decay"]
 
                 db.session.commit()
                 chal_dbobj = matching_chal
@@ -194,7 +199,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 db.session.commit()
 
             for tag in chal.get("tags", []):
-                tag_dbobj = Tags(challenge_id=chal_dbobj.id, value=tag["value"])
+                tag_dbobj = Tags(challenge_id=chal_dbobj.id, value=tag)
                 db.session.add(tag_dbobj)
 
             for flag in chal["flags"]:
@@ -203,6 +208,10 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 )
                 db.session.add(flag_db)
 
+            for hint in chal.get("hints", []):
+                hint_dbobj = Hints(challenge_id=chal_dbobj.id, content=hint["content"], cost=hint["cost"])
+                db.session.add(hint_dbobj)
+
             prerequisites = set()
             for prerequisite in chal.get("prerequisites", []):
                 prerequisites.update(
@@ -210,8 +219,8 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
                 )
             chal_dbobj.requirements = {"prerequisites": list(prerequisites)}
 
-            if "hidden" in chal and chal["hidden"] == True:
-                chal_dbobj.state = "hidden"
+            chal_dbobj.state = "hidden" if ("hidden" in chal and chal["hidden"] == True) else "visible"
+            chal_dbobj.max_attempts = chal["max_attempts"] if "max_attempts" in chal else 0
 
             if "files" in chal:
                 from io import FileIO
