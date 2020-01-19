@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 from flask import Flask
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.engine.url import make_url

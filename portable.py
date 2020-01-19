@@ -1,10 +1,11 @@
 from flask import Blueprint, send_file, request, abort, render_template_string
 from werkzeug.utils import secure_filename
-from exporter import export_challenges
-from importer import import_challenges
+from .exporter import export_challenges
+from .importer import import_challenges
 from tempfile import TemporaryFile, mkdtemp
 from gzip import GzipFile
 from CTFd.utils.decorators import admins_only
+from CTFd.plugins import register_plugin_assets_directory
 import tarfile
 import gzip
 import os
@@ -24,9 +25,9 @@ def load(app):
             tarball = tarfile.open(fileobj=tarfile_backend, mode="w")
             print(upload_folder)
 
-            yamlfile.write(
-                export_challenges("challenges.yaml", "files", upload_folder, tarball)
-            )
+            res = export_challenges("challenges.yaml", "files", upload_folder, tarball)
+            
+            yamlfile.write(bytes(res, encoding='utf-8'))
 
             tarinfo = tarfile.TarInfo("challenges.yaml")
             tarinfo.size = yamlfile.tell()
@@ -36,7 +37,7 @@ def load(app):
             yamlfile.close()
 
             gzipfile_backend = TemporaryFile(mode="wb+")
-            gzipfile = GzipFile(fileobj=gzipfile_backend)
+            gzipfile = GzipFile(fileobj=gzipfile_backend, mode='wb+')
 
             tarfile_backend.seek(0)
             shutil.copyfileobj(tarfile_backend, gzipfile)
@@ -94,16 +95,17 @@ def load(app):
             import_challenges(in_file, upload_folder, move=True)
 
             shutil.rmtree(tempdir)
-
+            
             return "1"
 
     @portable.route("/admin/transfer", methods=["GET"])
     @admins_only
     def yaml_form():
         templatepath = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "transfer.html")
+            os.path.join(os.path.dirname(__file__), "assets/transfer.html")
         )
         with open(templatepath, "r") as templatefile:
             return render_template_string(templatefile.read())
 
     app.register_blueprint(portable)
+    register_plugin_assets_directory(app, base_path="/plugins/ctfd-portable-challenges-plugin/assets/")
