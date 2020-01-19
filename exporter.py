@@ -118,6 +118,7 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
             "value": chal.value,
             "description": chal.description,
             "category": chal.category,
+            "type": chal.type
         }
 
         flags = []

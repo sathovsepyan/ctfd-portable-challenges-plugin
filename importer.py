@@ -97,41 +97,27 @@ class MissingFieldError(Exception):
         return "Error: Missing field '{}'".format(self.name)
 
 
-def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
+def import_challenges(in_file, dst_attachments, move=False):
     from CTFd.models import db, Challenges, Flags, Tags, ChallengeFiles, Hints
     from CTFd.utils import uploads
 
     with open(in_file, "r") as in_stream:
         data = list(yaml.safe_load_all(in_stream))
-        if len(data) == 0 or "challs" not in data[0]:
-            if exit_on_error:
-                raise MissingFieldError("challs")
-            else:
-                print("Invalid YAML format. Missing field 'challs'")
-                return
+        if len(data) == 0 or data[0] is None or "challs" not in data[0] or data[0]["challs"] is None:
+            raise ValueError("Invalid YAML format. Missing field 'challs'.")
 
         for chal in data[0]["challs"]:
-            skip = False
             for req_field in REQ_FIELDS:
                 if req_field not in chal:
-                    if exit_on_error:
-                        raise MissingFieldError(req_field)
-                    else:
-                        print(
-                            "Skipping challenge: Missing field '{}'".format(req_field)
-                        )
-                        skip = True
-                        break
-            if skip:
-                continue
+                    raise ValueError("Invalid YAML format. Missing field '{0}'.".format(req_field))
+
+            if chal["flags"] is None:
+                raise ValueError("Invalid YAML format. Missing field 'flag'.")
 
             for flag in chal["flags"]:
                 if "flag" not in flag:
-                    if exit_on_error:
-                        raise MissingFieldError("flag")
-                    else:
-                        print("Skipping flag: Missing field 'flag'")
-                        continue
+                    raise ValueError("Invalid YAML format. Missing field 'flag'.")
+
                 flag["flag"] = flag["flag"].strip()
                 if "type" not in flag:
                     flag["type"] = "static"
@@ -152,7 +138,7 @@ def import_challenges(in_file, dst_attachments, exit_on_error=True, move=False):
 
                 matching_chal.name = chal["name"].strip()
                 matching_chal.description = chal["description"].strip()
-                matching_chal.category = chal["category"].strip
+                matching_chal.category = chal["category"].strip()
                 
                 if chal.get("type", "standard") == "standard":
                     matching_chal.value = chal["value"]
@@ -270,6 +256,6 @@ if __name__ == "__main__":
 
         app.db = db
         import_challenges(
-            args.in_file, args.dst_attachments, args.exit_on_error, move=args.move
+            args.in_file, args.dst_attachments, move=args.move
         )
 

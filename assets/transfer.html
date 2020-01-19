@@ -37,6 +37,13 @@
                         </div>
                     </div>
                     <div role="tabpanel" class="tab-pane active" id="import-chall">
+                        <div id="importsuccessalert" class="alert alert-success collapse" role="alert">
+                          <b>Success!</b> Challenges were imported successfully.
+                        </div>
+                        <div id="importerroralert" class="alert alert-danger collapse" role="alert">
+                          Oops, something went wrong. Challenges cannot be automatically imported.
+                        </div>
+
                         <div class="form-group">
                             <p>You can import challenges from a YAML file! </p>
                             <p>Please upload the YAML specification of challenges (called <i>challenges.yaml</i>)

@@ -1,4 +1,4 @@
-from flask import Blueprint, send_file, request, abort, render_template_string
+from flask import Blueprint, send_file, request, abort, render_template_string, jsonify
 from werkzeug.utils import secure_filename
 from .exporter import export_challenges
 from .importer import import_challenges
@@ -92,11 +92,15 @@ def load(app):
                 abort(400)
 
             in_file = os.path.join(tempdir, "challenges.yaml")
-            import_challenges(in_file, upload_folder, move=True)
-
+            
+            try:
+                import_challenges(in_file, upload_folder, move=True)
+            except ValueError as err:
+                return jsonify({"success": False, "errors": err.args})
+               
             shutil.rmtree(tempdir)
             
-            return "1"
+            return jsonify({"success": True})
 
     @portable.route("/admin/transfer", methods=["GET"])
     @admins_only

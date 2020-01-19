@@ -1,4 +1,7 @@
 $(function() {
+    success_alert = $('#importsuccessalert');
+    error_alert = $('#importerroralert');
+
     $("#import-chall-button").click(function (e) {
         var form = $("#import-form")[0];
         var formData = new FormData(form);
@@ -10,14 +13,25 @@ $(function() {
             cache: false,
             contentType: false,
             processData: false,
-            success: function (data) {
-                form.reset();
-                alert('success')
+            success: function (resp) {
+                if (resp.success) {
+                    form.reset();
+                    success_alert.show();
+                } else {
+                    error_alert.html(resp.errors);
+                    error_alert.show();
+                }
             },
             error: function (resp) {
-                alert('error')
+                error_alert.html("Oops, something went wrong! Challenges cannot be automatically imported.");
+                error_alert.show();
             }
         });
+    });
+
+    $("#tarfile").click(function (e) {
+        success_alert.hide();
+        error_alert.hide();
     });
 });
 
