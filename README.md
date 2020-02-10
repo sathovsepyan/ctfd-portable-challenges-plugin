@@ -25,6 +25,10 @@ There are two endpoints which are associated with this plugin.
 
 * '/admin/transfer': This is the front-end for the import/export system. It provides a simple inferface by which the endpoint described above can be accessed
 
+#### Notes: 
+* The plugin does not remove the existing challenges from the database. It adds new challenges and, in case a duplicate challenge exists, it updates the existing one. Duplicate challenges are found name. 
+* YAML represents the “wanted” status of specified challenges, i.e. fields that are not specified in YAML, are removed from a duplicate challenge.
+
 #### Command line interface:
 The `importer.py` and `exporter.py` scripts can be called directly from the CLI. This is much prefered if the archive you are uploading/downloading is saved on the server because it will not need to use the network.
 
