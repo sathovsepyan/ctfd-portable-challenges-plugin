@@ -1,6 +1,6 @@
 # Portable Challenges Plugin
 
-Compatable with CTFd v1.0.0
+Compatable with CTFd v2.2.2
 
 This plugin provides the ability to import and export challneges in a portable, human-readble format (currently YAML, with JSON if there is popular demand). 
 
@@ -14,7 +14,7 @@ This plugin provides the ability to import and export challneges in a portable, 
 Simple clone this repsitory into the plugins folder of your CTFd deployment and start the server. This plugin will automatically be loaded.
 
 ### Usage:
-You can use this plugin through the web API with a front-end at the '/admin/transfer' enpoint, or through the CLI
+Once the plugin is loaded, it will be available in 'Plugins' menu in Admin Panel. It's also available at '/admin/transfer' enpoint, or through the CLI.
 
 #### Web endpoints:
 There are two endpoints which are associated with this plugin. 
@@ -63,8 +63,8 @@ optional arguments:
 ```
 
 #### YAML Specification:
-Each challenge is a single document. Multiple documents can be present in one YAML file, separated by “---”, as specified by YAML 1.1. 
- 
+The YAML file is a single document (starting with "---") containing the list of challenges. 
+
 Following is a list of top level keys with their usage.
 
 **name**
@@ -84,7 +84,6 @@ Following is a list of top level keys with their usage.
 * Usage: Specify searchable tags that indicate attributes of this challenge
 * Default: Empty list
 
-
 **value** 
 * Type: Positive integer
 * Usage: The amount of point awarded for completion of the problem
@@ -102,10 +101,9 @@ Following is a list of top level keys with their usage.
   * Usage: The flag/key text
 
   **type** (optional)
-  * Type: Enum {REGEX, PLAINTEXT}
+  * Type: Enum {regex, static}
   * Usage: Specify whether the text should be compared to what the user enters directly, or as a regular expression
-  * Default: PLAINTEXT
-
+  * Default: static
 
 **hidden** (optional)
 * Type: Boolean {true, false}
@@ -115,77 +113,29 @@ Following is a list of top level keys with their usage.
 ##### Example YAML File
 ```YAML
 ---
-category: tristique
-description: Aenean nulla dolor, imperdiet id massa eu, iaculis mattis urna. Nullam
-  commodo velit nec tellus egestas, quis varius nulla malesuada. Orci varius natoque
-  penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi dapibus
-  lorem non tristique placerat. Lorem ipsum dolor sit amet, consectetur adipiscing
-  elit.
-files:
-- files/8f227f1c7f305b3fcd39cc06d54a7e36/bfn1o8t5s6dy.gif
-- files/4ab77d38dd646bb81e8d6d2533eec71c/bPXFXW7.mp4
-flags:
-- flag: pharetra
-name: Duis
-value: 10
----
-category: netus
-description: Duis nibh elit, ultricies non erat non, vulputate vestibulum risus. Nullam
-  posuere ac nisi vitae lobortis. Vivamus convallis dictum nunc sed cursus.
-files:
-- files/1e9f731e310179959337a26307356513/LYVIZ4x.mp4
-flags:
-- flag: ante
-hidden: true
-name: Integer
-value: 30
----
-category: tristique
-description: Praesent ullamcorper orci condimentum sapien tincidunt lacinia. Pellentesque
-  habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-  Suspendisse sem elit, euismod nec orci sit amet, elementum pulvinar ligula. Pellentesque
-  sed mi leo. Nam vulputate, massa at porta condimentum, odio nulla dictum sem, vel
-  rhoncus turpis quam at odio. Nam pharetra faucibus augue a rhoncus. In hac habitasse
-  platea dictumst.
-files:
-- files/479922c8a73612596ba64c681aa8a022/21KNq7T.mp4
-flags:
-- flag: orci
-name: suscipit nisi eget
-value: 40
----
-category: tristique
-description: Praesent ullamcorper orci condimentum sapien tincidunt lacinia. Pellentesque
-  habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-files:
-- files/8d25765f0902bfc03634e2f578e75e16/ES5hMrK.mp4
-- files/6a1586bced5fbed05ec64392dca6b0f1/fAiFGB3.mp4
-flags:
-- flag: '[eaEA]gesta(s)+'
-- flag: habitant
-- flag: turpis
-- flag: nisi
-name: Pellentesque
-value: 40
----
-category: Test
-description: Tset
-files:
-- files/ad752f7af75045c1e6735148af09075f/bridge-up.sh
-flags:
-- flag: key
-name: Test
-value: 50
----
-category: imperdiet
-description: Aenean nulla dolor, imperdiet id massa eu, iaculis mattis urna. Nullam
-  commodo velit nec tellus egestas, quis varius nulla malesuada. Orci varius natoque
-  penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi dapibus
-  lorem non tristique placerat. Lorem ipsum dolor sit amet, consectetur adipiscing
-  elit. Cras ac orci lacinia, tempus purus et, pharetra neque. Nullam facilisis sed
-  purus vel pharetra. Donec nec pulvinar massa.
-flags:
-- flag: Maecenas
-name: Cras
-value: 90
+challs:
+- category: category1
+  description: Description of challenge 1
+  flags:
+  - flag: flag1
+  files:
+  - files\4c2af694c9653ae663c3de98681ff0eb\test1.txt
+  name: chall1
+  type: standard
+  value: 100
+- category: category2
+  decay: 10
+  description: Description of challenge 2
+  flags:
+  - flag: ^[a-zA-Z0-9_]*$
+    type: regex
+  hidden: true
+  tags:
+  - tag1
+  - tag2
+  minimum: 10
+  name: dchall2
+  type: dynamic
+  value: 100
+  
 ```
