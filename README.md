@@ -67,48 +67,81 @@ The YAML file is a single document (starting with "---") containing the list of 
 
 Following is a list of top level keys with their usage.
 
-**name**
+**name** (required)
 * Type: Single line text
 * Usage: Specify the title which will appear to the user at the top of the challenge and on the challenge page
 
-**category**
+**category** (required)
 * Type: Single line text
 * Usage: Specify the category the challenge will appear a part of
 
-**description**
+**description** (required)
 * Type: Multiline text
 * Usage: The the body text of the challenge. If HTML tags are used, they will be rendered.
 
-**tags** (optional)
+**tags**
 * Type: List of single line text items
 * Usage: Specify searchable tags that indicate attributes of this challenge
 * Default: Empty list
 
-**value** 
+**type**
+* Type: Enum {standard, dynamic}
+* Usage: Determines the type of the challenge
+* Default: standard
+
+**value** (required)
 * Type: Positive integer
 * Usage: The amount of point awarded for completion of the problem
 
-**files** (optional)
+**files**
 * Type: List of file paths (single line text)
 * Usage: Specify paths to static files which should be included in challenge. On import these files will be uploaded. The filenames will remain the same on upload put the directories in the path will be replaced with a single directory with a random hexadecimal name. The file paths should be relative to the YAML file by default, but this can be changed by using command line arguments with the import tool.
 * Default: Empty list
 
-**flags**
+**flags** (required)
 * Type: List of flag objects
-  
+
   **flag**
   * Type: Single line text
   * Usage: The flag/key text
-
-  **type** (optional)
+  
+  **type**
   * Type: Enum {regex, static}
   * Usage: Specify whether the text should be compared to what the user enters directly, or as a regular expression
   * Default: static
 
-**hidden** (optional)
+**hidden**
 * Type: Boolean {true, false}
 * Usage: Set to true if this challenge should not display to the user
 * Default: false
+
+**hints**
+* Type: List of hint objects
+
+  **content**
+  * Type: Single line text
+  * Usage: The content of the hint
+ 
+  **cost**
+  * Type: Positive integer
+  * Usage: The amount of points the hint costs
+
+**prerequisites** 
+* Type: List of the names of the prerequisite challenges.
+* Usage: Prerequisits can be challenges that either already exist or are being created with current YAML. Non-existing challenge names are skipped.
+
+**minimum** (required for dynamic challenges)
+* Type: Positive integer
+* Usage: The lowest that the challenge can be worth
+
+**decay** (required for dynamic challenges)
+* Type: Positive integer
+* Usage: The amount of solves before the challenge reaches its minimum value
+
+**max_attempts** 
+* Type: Non-negative integer 
+* Usage: Maximum amount of attempts users receive for a dynamic challenge. Leave at 0 for unlimited
+* Default: 0 for unlimited
 
 ##### Example YAML File
 ```YAML
@@ -137,5 +170,10 @@ challs:
   name: dchall2
   type: dynamic
   value: 100
+  hints:
+  - content: hint content
+    cost: 10
+  prerequisites:
+  - chall1
   
 ```
