@@ -1,6 +1,6 @@
 # Portable Challenges Plugin
 
-Compatable with CTFd v1.0.0
+Compatable with CTFd v2.2.2
 
 This plugin provides the ability to import and export challneges in a portable, human-readble format (currently YAML, with JSON if there is popular demand). 
 
@@ -14,7 +14,7 @@ This plugin provides the ability to import and export challneges in a portable, 
 Simple clone this repsitory into the plugins folder of your CTFd deployment and start the server. This plugin will automatically be loaded.
 
 ### Usage:
-You can use this plugin through the web API with a front-end at the '/admin/transfer' enpoint, or through the CLI
+Once the plugin is loaded, it will be available in 'Plugins' menu in Admin Panel. It's also available at '/admin/transfer' enpoint, or through the CLI.
 
 #### Web endpoints:
 There are two endpoints which are associated with this plugin. 
@@ -24,6 +24,10 @@ There are two endpoints which are associated with this plugin.
   * `POST`: Requires a tarball archive, optional compressed with gzip or bz2, to be attached in the 'file' field. This will unpack the archive and add any challeneges which are not already in the database. The archive should contain the challenge spec as 'challenges.yaml' at the root directory of the archive, and no paths should reach into directories above the archive (e.g. ../../etc/passwd would trigger an error) A challenge is not added if it is an exact replica of an existing challenge including name, category, files, keys, etc...
 
 * '/admin/transfer': This is the front-end for the import/export system. It provides a simple inferface by which the endpoint described above can be accessed
+
+#### Notes: 
+* The plugin does not remove the existing challenges from the database. It adds new challenges and, in case a duplicate challenge exists, it updates the existing one. Duplicate challenges are found name. 
+* YAML represents the “wanted” status of specified challenges, i.e. fields that are not specified in YAML, are removed from a duplicate challenge.
 
 #### Command line interface:
 The `importer.py` and `exporter.py` scripts can be called directly from the CLI. This is much prefered if the archive you are uploading/downloading is saved on the server because it will not need to use the network.
@@ -63,129 +67,117 @@ optional arguments:
 ```
 
 #### YAML Specification:
-Each challenge is a single document. Multiple documents can be present in one YAML file, separated by “---”, as specified by YAML 1.1. 
- 
+The YAML file is a single document (starting with "---") containing the list of challenges. 
+
 Following is a list of top level keys with their usage.
 
-**name**
+**name** (required)
 * Type: Single line text
 * Usage: Specify the title which will appear to the user at the top of the challenge and on the challenge page
 
-**category**
+**category** (required)
 * Type: Single line text
 * Usage: Specify the category the challenge will appear a part of
 
-**description**
+**description** (required)
 * Type: Multiline text
 * Usage: The the body text of the challenge. If HTML tags are used, they will be rendered.
 
-**tags** (optional)
+**tags**
 * Type: List of single line text items
 * Usage: Specify searchable tags that indicate attributes of this challenge
 * Default: Empty list
 
+**type**
+* Type: Enum {standard, dynamic}
+* Usage: Determines the type of the challenge
+* Default: standard
 
-**value** 
+**value** (required)
 * Type: Positive integer
 * Usage: The amount of point awarded for completion of the problem
 
-**files** (optional)
+**files**
 * Type: List of file paths (single line text)
 * Usage: Specify paths to static files which should be included in challenge. On import these files will be uploaded. The filenames will remain the same on upload put the directories in the path will be replaced with a single directory with a random hexadecimal name. The file paths should be relative to the YAML file by default, but this can be changed by using command line arguments with the import tool.
 * Default: Empty list
 
-**flags**
+**flags** (required)
 * Type: List of flag objects
-  
+
   **flag**
   * Type: Single line text
   * Usage: The flag/key text
-
-  **type** (optional)
-  * Type: Enum {REGEX, PLAINTEXT}
+  
+  **type**
+  * Type: Enum {regex, static}
   * Usage: Specify whether the text should be compared to what the user enters directly, or as a regular expression
-  * Default: PLAINTEXT
+  * Default: static
 
-
-**hidden** (optional)
+**hidden**
 * Type: Boolean {true, false}
 * Usage: Set to true if this challenge should not display to the user
 * Default: false
 
+**hints**
+* Type: List of hint objects
+
+  **content**
+  * Type: Single line text
+  * Usage: The content of the hint
+ 
+  **cost**
+  * Type: Positive integer
+  * Usage: The amount of points the hint costs
+
+**prerequisites** 
+* Type: List of the names of the prerequisite challenges.
+* Usage: Prerequisits can be challenges that either already exist or are being created with current YAML. Non-existing challenge names are skipped.
+
+**minimum** (required for dynamic challenges)
+* Type: Positive integer
+* Usage: The lowest that the challenge can be worth
+
+**decay** (required for dynamic challenges)
+* Type: Positive integer
+* Usage: The amount of solves before the challenge reaches its minimum value
+
+**max_attempts** 
+* Type: Non-negative integer 
+* Usage: Maximum amount of attempts users receive for a dynamic challenge. Leave at 0 for unlimited
+* Default: 0 for unlimited
+
 ##### Example YAML File
 ```YAML
 ---
-category: tristique
-description: Aenean nulla dolor, imperdiet id massa eu, iaculis mattis urna. Nullam
-  commodo velit nec tellus egestas, quis varius nulla malesuada. Orci varius natoque
-  penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi dapibus
-  lorem non tristique placerat. Lorem ipsum dolor sit amet, consectetur adipiscing
-  elit.
-files:
-- files/8f227f1c7f305b3fcd39cc06d54a7e36/bfn1o8t5s6dy.gif
-- files/4ab77d38dd646bb81e8d6d2533eec71c/bPXFXW7.mp4
-flags:
-- flag: pharetra
-name: Duis
-value: 10
----
-category: netus
-description: Duis nibh elit, ultricies non erat non, vulputate vestibulum risus. Nullam
-  posuere ac nisi vitae lobortis. Vivamus convallis dictum nunc sed cursus.
-files:
-- files/1e9f731e310179959337a26307356513/LYVIZ4x.mp4
-flags:
-- flag: ante
-hidden: true
-name: Integer
-value: 30
----
-category: tristique
-description: Praesent ullamcorper orci condimentum sapien tincidunt lacinia. Pellentesque
-  habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-  Suspendisse sem elit, euismod nec orci sit amet, elementum pulvinar ligula. Pellentesque
-  sed mi leo. Nam vulputate, massa at porta condimentum, odio nulla dictum sem, vel
-  rhoncus turpis quam at odio. Nam pharetra faucibus augue a rhoncus. In hac habitasse
-  platea dictumst.
-files:
-- files/479922c8a73612596ba64c681aa8a022/21KNq7T.mp4
-flags:
-- flag: orci
-name: suscipit nisi eget
-value: 40
----
-category: tristique
-description: Praesent ullamcorper orci condimentum sapien tincidunt lacinia. Pellentesque
-  habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-files:
-- files/8d25765f0902bfc03634e2f578e75e16/ES5hMrK.mp4
-- files/6a1586bced5fbed05ec64392dca6b0f1/fAiFGB3.mp4
-flags:
-- flag: '[eaEA]gesta(s)+'
-- flag: habitant
-- flag: turpis
-- flag: nisi
-name: Pellentesque
-value: 40
----
-category: Test
-description: Tset
-files:
-- files/ad752f7af75045c1e6735148af09075f/bridge-up.sh
-flags:
-- flag: key
-name: Test
-value: 50
----
-category: imperdiet
-description: Aenean nulla dolor, imperdiet id massa eu, iaculis mattis urna. Nullam
-  commodo velit nec tellus egestas, quis varius nulla malesuada. Orci varius natoque
-  penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi dapibus
-  lorem non tristique placerat. Lorem ipsum dolor sit amet, consectetur adipiscing
-  elit. Cras ac orci lacinia, tempus purus et, pharetra neque. Nullam facilisis sed
-  purus vel pharetra. Donec nec pulvinar massa.
-flags:
-- flag: Maecenas
-name: Cras
-value: 90
+challs:
+- category: category1
+  description: Description of challenge 1
+  flags:
+  - flag: flag1
+  files:
+  - files\4c2af694c9653ae663c3de98681ff0eb\test1.txt
+  name: chall1
+  type: standard
+  value: 100
+- category: category2
+  decay: 10
+  description: Description of challenge 2
+  flags:
+  - flag: ^[a-zA-Z0-9_]*$
+    type: regex
+  hidden: true
+  tags:
+  - tag1
+  - tag2
+  minimum: 10
+  name: dchall2
+  type: dynamic
+  value: 100
+  hints:
+  - content: hint content
+    cost: 10
+  prerequisites:
+  - chall1
+  
 ```
