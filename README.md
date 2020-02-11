@@ -4,19 +4,19 @@ Compatable with CTFd v2.2.2
 
 This plugin provides the ability to import and export challneges in a portable, human-readble format (currently YAML, with JSON if there is popular demand). 
 
-### Objectives:
+### Objectives
 * Allow challenges to be saved outside of the database
 * Allow for source control on challenges
 * Allow for easy human editing of challenges offline
 * Enable rapid deployment of challenges to a CTFd instance
 
-### Installation:
+### Installation
 Simple clone this repsitory into the plugins folder of your CTFd deployment and start the server. This plugin will automatically be loaded.
 
-### Usage:
+### Usage
 Once the plugin is loaded, it will be available in 'Plugins' menu in Admin Panel. It's also available at '/admin/transfer' enpoint, or through the CLI.
 
-#### Web endpoints:
+#### Web endpoints
 There are two endpoints which are associated with this plugin. 
 
 * '/admin/yaml': This is where the file transfer takes place. It supports two methods.
@@ -25,51 +25,14 @@ There are two endpoints which are associated with this plugin.
 
 * '/admin/transfer': This is the front-end for the import/export system. It provides a simple inferface by which the endpoint described above can be accessed
 
-#### Notes: 
-* The plugin does not remove the existing challenges from the database. It adds new challenges and, in case a duplicate challenge exists, it updates the existing one. Duplicate challenges are found name. 
+### Notes
+* The plugin does not remove the existing challenges from the database. It adds new challenges and, in case a duplicate challenge exists, it updates the existing one. Duplicate challenges are found by name. 
 * YAML represents the “wanted” status of specified challenges, i.e. fields that are not specified in YAML, are removed from a duplicate challenge.
 
-#### Command line interface:
-The `importer.py` and `exporter.py` scripts can be called directly from the CLI. This is much prefered if the archive you are uploading/downloading is saved on the server because it will not need to use the network.
-
-The help dialog follows:
-```
-usage: importer.py [-h] [--app-root APP_ROOT] [-d DB_URI] [-F DST_ATTACHMENTS] [-i IN_FILE] [--skip-on-error] [--move]
-
-Import CTFd challenges and their attachments to a DB from a YAML formated
-specification file and an associated attachment directory
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --app-root APP_ROOT  app_root directory for the CTFd Flask app (default: 2 directories up from this script)
-  -d DB_URI            URI of the database where the challenges should be stored
-  -F DST_ATTACHMENTS   directory where challenge attachment files should be stored
-  -i IN_FILE           name of the input YAML file (default: challenges.yaml)
-  --skip-on-error      If set, the importer will skip the importing challenges which have errors rather than halt.
-  --move               if set the import proccess will move files rather than copy them
-
-```
-```
-usage: exporter.py [-h] [--app-root APP_ROOT] [-d DB_URI] [-F SRC_ATTACHMENTS] [-o OUT_FILE] [-O DST_ATTACHMENTS] [--tar] [--gz]
-
-Export a DB full of CTFd challenges and theirs attachments into a portable
-YAML formated specification file and an associated attachment directory
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --app-root APP_ROOT  app_root directory for the CTFd Flask app (default: 2 directories up from this script)
-  -d DB_URI            URI of the database where the challenges are stored
-  -F SRC_ATTACHMENTS   directory where challenge attachment files are stored
-  -o OUT_FILE          name of the output YAML file (default: challenges.yaml)
-  -O DST_ATTACHMENTS   directory for output challenge attachments (default: [OUT_FILENAME].d)
-  --tar                if present, output to tar file
-  --gz                 if present, compress the tar file (only used if '--tar'is on)
-```
-
-#### YAML Specification:
+### YAML Specification
 The YAML file is a single document (starting with "---") containing the list of challenges. 
 
-Following is a list of top level keys with their usage.
+Following is the list of top level keys with their usage.
 
 **name** (required)
 * Type: Single line text
@@ -95,7 +58,7 @@ Following is a list of top level keys with their usage.
 
 **value** (required)
 * Type: Positive integer
-* Usage: The amount of point awarded for completion of the problem
+* Usage: The amount of point awarded for completion of the problem. _Note:_ For dynamic challenges this field represents the 'initial value'. 'Current value' will be calculated based on the initial value, decay and the number of submissions (same behavior as updating the field from the UI). 
 
 **files**
 * Type: List of file paths (single line text)
@@ -147,7 +110,9 @@ Following is a list of top level keys with their usage.
 * Usage: Maximum amount of attempts users receive for a dynamic challenge. Leave at 0 for unlimited
 * Default: 0 for unlimited
 
-##### Example YAML File
+### Example YAML File
+A sample valid YAML file can be found [here](https://github.com/sathovsepyan/ctfd-portable-challenges-plugin/blob/master/challenges_sample.yaml). It looks like this: 
+
 ```YAML
 ---
 challs:
@@ -180,4 +145,41 @@ challs:
   prerequisites:
   - chall1
   
+```
+
+#### Command line interface _(only compatible with older CTFd versions)_
+The `importer.py` and `exporter.py` scripts can be called directly from the CLI. This is much prefered if the archive you are uploading/downloading is saved on the server because it will not need to use the network.
+
+The help dialog follows:
+```
+usage: importer.py [-h] [--app-root APP_ROOT] [-d DB_URI] [-F DST_ATTACHMENTS] [-i IN_FILE] [--skip-on-error] [--move]
+
+Import CTFd challenges and their attachments to a DB from a YAML formated
+specification file and an associated attachment directory
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --app-root APP_ROOT  app_root directory for the CTFd Flask app (default: 2 directories up from this script)
+  -d DB_URI            URI of the database where the challenges should be stored
+  -F DST_ATTACHMENTS   directory where challenge attachment files should be stored
+  -i IN_FILE           name of the input YAML file (default: challenges.yaml)
+  --skip-on-error      If set, the importer will skip the importing challenges which have errors rather than halt.
+  --move               if set the import proccess will move files rather than copy them
+
+```
+```
+usage: exporter.py [-h] [--app-root APP_ROOT] [-d DB_URI] [-F SRC_ATTACHMENTS] [-o OUT_FILE] [-O DST_ATTACHMENTS] [--tar] [--gz]
+
+Export a DB full of CTFd challenges and theirs attachments into a portable
+YAML formated specification file and an associated attachment directory
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --app-root APP_ROOT  app_root directory for the CTFd Flask app (default: 2 directories up from this script)
+  -d DB_URI            URI of the database where the challenges are stored
+  -F SRC_ATTACHMENTS   directory where challenge attachment files are stored
+  -o OUT_FILE          name of the output YAML file (default: challenges.yaml)
+  -O DST_ATTACHMENTS   directory for output challenge attachments (default: [OUT_FILENAME].d)
+  --tar                if present, output to tar file
+  --gz                 if present, compress the tar file (only used if '--tar'is on)
 ```
