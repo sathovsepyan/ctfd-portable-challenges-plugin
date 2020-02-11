@@ -115,7 +115,6 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
     for chal in chals:
         properties = {
             "name": chal.name,
-            "value": chal.value,
             "description": chal.description,
             "category": chal.category,
             "type": chal.type
@@ -134,6 +133,15 @@ def export_challenges(out_file, dst_attachments, src_attachments, tarfile=None):
             properties["hidden"] = True
         if chal.max_attempts != 0: 
             properties["max_attempts"] = chal.max_attempts
+
+        if chal.type =="dynamic":
+            properties["value"] = chal.initial
+            if chal.minimum:
+                properties["minimum"] = chal.minimum
+            if chal.decay:
+                properties["decay"] = chal.decay
+        else:
+            properties["value"] = chal.value
 
         tags = []
         for tag_obj in Tags.query.filter_by(challenge_id=chal.id):

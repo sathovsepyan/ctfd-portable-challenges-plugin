@@ -89,17 +89,10 @@ def process_args(args):
     return args
 
 
-class MissingFieldError(Exception):
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return "Error: Missing field '{}'".format(self.name)
-
-
 def import_challenges(in_file, dst_attachments, move=False):
     from CTFd.models import db, Challenges, Flags, Tags, ChallengeFiles, Hints
     from CTFd.utils import uploads
+    from CTFd.plugins.dynamic_challenges import DynamicChallenge, DynamicValueChallenge
 
     with open(in_file, "r") as in_stream:
         data = list(yaml.safe_load_all(in_stream))
@@ -111,6 +104,11 @@ def import_challenges(in_file, dst_attachments, move=False):
                 if req_field not in chal:
                     raise ValueError("Invalid YAML format. Missing field '{0}'.".format(req_field))
 
+            if chal.get("type", "standard") == "dynamic":
+                for req_field in ["minimum", "decay"]:
+                    if req_field not in chal:
+                        raise ValueError("Invalid YAML format. Missing field '{0}'.".format(req_field))
+                
             if chal["flags"] is None:
                 raise ValueError("Invalid YAML format. Missing field 'flag'.")
 
@@ -146,6 +144,8 @@ def import_challenges(in_file, dst_attachments, move=False):
                 if chal.get("type", "standard") == "dynamic":
                     matching_chal.minimum = chal["minimum"]
                     matching_chal.decay = chal["decay"]
+                    matching_chal.initial = chal["value"]
+                    DynamicValueChallenge.calculate_value(matching_chal)
 
                 db.session.commit()
                 chal_dbobj = matching_chal
@@ -164,8 +164,6 @@ def import_challenges(in_file, dst_attachments, move=False):
                         category=chal["category"].strip(),
                     )
                 elif chal_type == "dynamic":
-                    from CTFd.plugins.dynamic_challenges import DynamicChallenge
-
                     # We ignore traling and leading whitespace when
                     # importing challenges
                     chal_dbobj = DynamicChallenge(
@@ -196,13 +194,6 @@ def import_challenges(in_file, dst_attachments, move=False):
                 hint_dbobj = Hints(challenge_id=chal_dbobj.id, content=hint["content"], cost=hint["cost"])
                 db.session.add(hint_dbobj)
 
-            prerequisites = set()
-            for prerequisite in chal.get("prerequisites", []):
-                prerequisites.update(
-                    [c.id for c in Challenges.query.filter_by(name=prerequisite).all()]
-                )
-            chal_dbobj.requirements = {"prerequisites": list(prerequisites)}
-
             chal_dbobj.state = "hidden" if ("hidden" in chal and chal["hidden"] == True) else "visible"
             chal_dbobj.max_attempts = chal["max_attempts"] if "max_attempts" in chal else 0
 
@@ -210,15 +201,36 @@ def import_challenges(in_file, dst_attachments, move=False):
                 from io import FileIO
 
                 for filename in chal["files"]:
-                    # upload_file takes a werkzeug.FileStorage object, but we
-                    # can get close enough with a file object with a
-                    # filename property added
-                    filepath = os.path.join(os.path.dirname(in_file), filename)
-                    with FileIO(filepath, mode="rb") as f:
-                        f.filename = os.path.basename(f.name)
-                        uploads.upload_file(
-                            file=f, challenge=chal_dbobj.id, type="challenge"
-                        )
+                    try:
+                        # upload_file takes a werkzeug.FileStorage object, but we
+                        # can get close enough with a file object with a
+                        # filename property added
+                        filepath = os.path.join(os.path.dirname(in_file), filename)
+                        with FileIO(filepath, mode="rb") as f:
+                            f.filename = os.path.basename(f.name)
+                            uploads.upload_file(
+                                file=f, challenge=chal_dbobj.id, type="challenge"
+                            )
+                    except FileNotFoundError:
+                        raise ValueError("Unable to import challenges. Missing file: " + filename)                    
+
+    db.session.commit()
+
+    # update challenge prerequisites after all the challenges were created
+    with open(in_file, "r") as in_stream:
+        data = list(yaml.safe_load_all(in_stream))
+        for chal in data[0]["challs"]:
+
+            chal_dbobj = Challenges.query.filter_by(
+                name=chal["name"].strip()
+            ).first()
+
+            prerequisites = set()
+            for prerequisite in chal.get("prerequisites", []):
+                prerequisites.update(
+                    [c.id for c in Challenges.query.filter_by(name=prerequisite).all()]
+                )
+            chal_dbobj.requirements = {"prerequisites": list(prerequisites)}
 
     db.session.commit()
     db.session.close()
