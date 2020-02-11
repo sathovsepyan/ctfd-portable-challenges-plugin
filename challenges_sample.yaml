@@ -1,0 +1,36 @@
+---
+challs:
+  - category: category1
+    description: Description of challenge 1
+    flags:
+      - flag: flag1
+      - flag: ^[a-zA-Z0-9_]*$
+        type: regex
+    hints:
+      - content: hint1 content
+        cost: 10
+      - content: hint2 content
+        cost: 10
+    name: chall1
+    tags:
+      - tag1
+      - tag2
+    type: standard
+    value: 100
+  - category: category2
+    decay: 2
+    description: Description of challenge 2
+    flags:
+      - flag: flag1
+    minimum: 50
+    name: chall3
+    type: dynamic
+    value: 100
+  - category: category1
+    description: Description of challenge 2
+    flags:
+      - flag: flag1
+    hidden: true
+    name: chall2
+    type: standard
+    value: 150
