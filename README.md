@@ -19,15 +19,19 @@ Once the plugin is loaded, it will be available in 'Plugins' menu in Admin Panel
 #### Web endpoints
 There are two endpoints which are associated with this plugin. 
 
-* '/admin/yaml': This is where the file transfer takes place. It supports two methods.
+* **`/admin/yaml`**: This is where the file transfer takes place. It supports two methods.
   * `GET`: Will send, as an attachment, a compressed tarball archive containing all of the currently configured challenges and their files
   * `POST`: Requires a tarball archive, optional compressed with gzip or bz2, to be attached in the 'file' field. This will unpack the archive and add any challeneges which are not already in the database. The archive should contain the challenge spec as 'challenges.yaml' at the root directory of the archive, and no paths should reach into directories above the archive (e.g. ../../etc/passwd would trigger an error) A challenge is not added if it is an exact replica of an existing challenge including name, category, files, keys, etc...
 
-* '/admin/transfer': This is the front-end for the import/export system. It provides a simple inferface by which the endpoint described above can be accessed
+* **`/admin/transfer`**: This is the front-end for the import/export system. It provides a simple inferface by which the endpoint described above can be accessed
 
 ### Notes
 * The plugin does not remove the existing challenges from the database. It adds new challenges and, in case a duplicate challenge exists, it updates the existing one. Duplicate challenges are found by name. 
 * YAML represents the “wanted” status of specified challenges, i.e. fields that are not specified in YAML, are removed from a duplicate challenge.
+* The following script can be used to generate a tar.gz archive ready to import (having YAML specification in 'challenges.yaml' and the required files in directory 'files'): 
+```
+tar -czvf chall.tar.gz challenges.yaml files
+```
 
 ### YAML Specification
 The YAML file is a single document (starting with "---") containing the list of challenges. 
