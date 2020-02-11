@@ -34,3 +34,6 @@ challs:
     name: chall2
     type: standard
     value: 150
+    prerequisites:
+      - chall1
+    max_attempts: 10
