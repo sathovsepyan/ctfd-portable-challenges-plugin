@@ -151,7 +151,7 @@ challs:
   
 ```
 
-#### Command line interface _(only compatible with older CTFd versions)_
+#### Command line interface _(only compatible with older CTFd versions, needs to be reviewed)_
 The `importer.py` and `exporter.py` scripts can be called directly from the CLI. This is much prefered if the archive you are uploading/downloading is saved on the server because it will not need to use the network.
 
 The help dialog follows:
